@@ -16,6 +16,15 @@ namespace geneva_vending.Client
             { GetHashKey("prop_vend_soda_01"), GetHashKey("prop_ecola_can") },
             { GetHashKey("prop_vend_soda_02"), GetHashKey("prop_ld_can_01b") }
         };
+        private static bool CanUseVendingMachine =>
+            Game.PlayerPed.IsAlive &&
+            !Game.PlayerPed.IsInVehicle() &&
+            !Game.PlayerPed.IsGettingIntoAVehicle &&
+            !Game.PlayerPed.IsClimbing &&
+            !Game.PlayerPed.IsVaulting &&
+            Game.PlayerPed.IsOnFoot &&
+            !Game.PlayerPed.IsRagdoll &&
+            !Game.PlayerPed.IsSwimming;
 
         private async void LoadAnimDict(string dict)
         {
@@ -43,19 +52,9 @@ namespace geneva_vending.Client
             }
         }
 
-        private static bool CanUseVendingMachine
-        {
-            get
-            {
-                Ped plyPed = Game.PlayerPed;
-                return plyPed.IsAlive && !plyPed.IsInVehicle() && !plyPed.IsGettingIntoAVehicle &&
-                    !plyPed.IsClimbing && !plyPed.IsVaulting && plyPed.IsOnFoot && !plyPed.IsRagdoll &&
-                    !plyPed.IsSwimming;
-            }
-        }
-
         private async void BuySoda(Prop vendingMachine)
         {
+            ClearHelp(true);
             _usingVendingMachine = true;
             vendingMachine.State.Set("beingUsed", true, true);
             Ped plyPed = Game.PlayerPed;
@@ -129,12 +128,17 @@ namespace geneva_vending.Client
             vendingMachine.State.Set("sodaLeft", sodaLeft -= 1, true);
         }
 
+        private bool DoStateBagsExist(Prop vendingMachine)
+        {
+            return vendingMachine.State.Get("sodaLeft") != null && vendingMachine.State.Get("beingUsed") != null;
+        }
+
         [Tick]
         private async Task FindVendingMachineTick()
         {
             if (_usingVendingMachine || !CanUseVendingMachine)
             {
-                await Delay(3000);
+                await Delay(3500);
                 return;
             }
 
@@ -146,21 +150,21 @@ namespace geneva_vending.Client
 
             if (prop == null)
             {
-                await Delay(3000);
+                await Delay(3500);
                 return;
             }
 
             if (!NetworkGetEntityIsNetworked(prop.Handle)) NetworkRegisterEntityAsNetworked(prop.Handle);
 
-            if (prop.State.Get("sodaLeft") == null || prop.State.Get("beingUsed") == null)
+            if (!DoStateBagsExist(prop))
             {
                 TriggerServerEvent("geneva-vending:initVendingMachine", prop.NetworkId);
-                await Delay(500);
+                await Delay(1000);
             }
 
-            if (prop.State.Get("beingUsed"))
+            if (prop?.State.Get("beingUsed") != null && prop?.State.Get("beingUsed"))
             {
-                await Delay(3500);
+                await Delay(3000);
                 return;
             }
 
@@ -178,7 +182,7 @@ namespace geneva_vending.Client
                 return;
             }
 
-            if (prop.State.Get("sodaLeft") > 0 && !IsPauseMenuActive() && dist < 2f)
+            if (prop?.State.Get("sodaLeft") > 0 && !IsPauseMenuActive() && dist < 1.5f)
             {
                 Screen.DisplayHelpTextThisFrame("Press ~INPUT_CONTEXT~ to buy a soda for $1.");
 
@@ -187,12 +191,12 @@ namespace geneva_vending.Client
                     BuySoda(prop);
                 }
             }
-            else if (prop.State.Get("sodaLeft") == 0 && dist < 2f)
+            else if (prop?.State.Get("sodaLeft") == 0 && dist < 1.5f)
             {
-                if (!prop.State.Get("markedForReset"))
+                if (!prop?.State.Get("markedForReset"))
                 {
-                    TriggerServerEvent("geneva-vending:markVendingMachineForReset", prop.NetworkId);
-                    await Delay(500);
+                    TriggerServerEvent("geneva-vending:markVendingMachineForReset", prop?.NetworkId);
+                    await Delay(350);
                 }
 
                 Screen.DisplayHelpTextThisFrame("Vending machine has run out of sodas.");
