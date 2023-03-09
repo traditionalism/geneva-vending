@@ -10,7 +10,6 @@ namespace geneva_vending.Client
     public class ClientMain : BaseScript
     {
         private bool _usingVendingMachine;
-        private Prop _canProp;
         private readonly Dictionary<int, int> _vendingMachineModels = new()
         {
             { GetHashKey("prop_vend_soda_01"), GetHashKey("prop_ecola_can") },
@@ -26,7 +25,7 @@ namespace geneva_vending.Client
             !Game.PlayerPed.IsRagdoll &&
             !Game.PlayerPed.IsSwimming;
 
-        private async void LoadAnimDict(string dict)
+        private async Task LoadAnimDict(string dict)
         {
             RequestAnimDict(dict);
             while (!HasAnimDictLoaded(dict))
@@ -35,7 +34,7 @@ namespace geneva_vending.Client
             }
         }
 
-        private async void LoadModel(uint model)
+        private async Task LoadModel(uint model)
         {
             RequestModel(model);
             while (!HasModelLoaded(model))
@@ -44,7 +43,7 @@ namespace geneva_vending.Client
             }
         }
 
-        private async void LoadAmbientAudioBank(string bank)
+        private async Task LoadAmbientAudioBank(string bank)
         {
             while (!RequestAmbientAudioBank(bank, false))
             {
@@ -52,10 +51,9 @@ namespace geneva_vending.Client
             }
         }
 
-        private async void BuySoda(Prop vendingMachine)
+        private async Task BuySoda(Prop vendingMachine)
         {
             ClearHelp(true);
-            _usingVendingMachine = true;
             vendingMachine.State.Set("beingUsed", true, true);
             Ped plyPed = Game.PlayerPed;
             Vector3 offset = vendingMachine.GetOffsetPosition(new Vector3(0f, -0.97f, 0.05f));
@@ -70,7 +68,7 @@ namespace geneva_vending.Client
 
             if (_vendingMachineModels.TryGetValue(vendingMachine.Model.Hash, out int canModel))
             {
-                LoadModel((uint)canModel);
+                await LoadModel((uint)canModel);
             }
             else
             {
@@ -82,8 +80,8 @@ namespace geneva_vending.Client
                 return;
             }
 
-            LoadAmbientAudioBank("VENDING_MACHINE");
-            LoadAnimDict("MINI@SPRUNK");
+            await LoadAmbientAudioBank("VENDING_MACHINE");
+            await LoadAnimDict("MINI@SPRUNK");
 
             plyPed.Task.LookAt(vendingMachine, 2000);
             TaskGoStraightToCoord(plyPed.Handle, offset.X, offset.Y, offset.Z, 1.0f, 20000, vendingMachine.Heading, 0.1f);
@@ -94,7 +92,7 @@ namespace geneva_vending.Client
 
             while (GetEntityAnimCurrentTime(plyPed.Handle, "MINI@SPRUNK", "PLYR_BUY_DRINK_PT1") < 0.31f) await Delay(0);
 
-            _canProp = await World.CreatePropNoOffset(canModel, offset, new Vector3(0f, 0f, 0f), true);
+            Prop _canProp = await World.CreatePropNoOffset(canModel, offset, new Vector3(0f, 0f, 0f), true);
             _canProp.IsInvincible = true;
             _canProp.AttachTo(plyPed.Bones[Bone.PH_R_Hand], new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f));
 
@@ -121,8 +119,6 @@ namespace geneva_vending.Client
             plyPed.IsInvincible = false;
             plyPed.CanBeTargetted = true;
             plyPed.CanRagdoll = true;
-            _canProp = null;
-            _usingVendingMachine = false;
             vendingMachine.State.Set("beingUsed", false, true);
             int sodaLeft = vendingMachine.State.Get("sodaLeft");
             vendingMachine.State.Set("sodaLeft", sodaLeft -= 1, true);
@@ -136,7 +132,7 @@ namespace geneva_vending.Client
         [Tick]
         private async Task FindVendingMachineTick()
         {
-            if (_usingVendingMachine || !CanUseVendingMachine)
+            if (!CanUseVendingMachine)
             {
                 await Delay(3500);
                 return;
@@ -188,7 +184,7 @@ namespace geneva_vending.Client
 
                 if (Game.IsControlJustReleased(0, Control.Context))
                 {
-                    BuySoda(prop);
+                    await BuySoda(prop);
                 }
             }
             else if (prop?.State.Get("sodaLeft") == 0 && dist < 1.5f)
