@@ -1,0 +1,5 @@
+dist
+build.zip
+*/obj
+Server/bin
+Client/bin

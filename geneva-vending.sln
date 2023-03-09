@@ -1,0 +1,27 @@
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26124.0
+MinimumVisualStudioVersion = 15.0.26124.0
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "geneva-vending.Client", "Client\geneva-vending.Client.csproj", "{3E2E3A7B-F466-4E5C-9E75-53B5F169542F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "geneva-vending.Server", "Server\geneva-vending.Server.csproj", "{A19E9525-593C-402E-8BD4-484F64A9DDD5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3E2E3A7B-F466-4E5C-9E75-53B5F169542F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E2E3A7B-F466-4E5C-9E75-53B5F169542F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E2E3A7B-F466-4E5C-9E75-53B5F169542F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E2E3A7B-F466-4E5C-9E75-53B5F169542F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A19E9525-593C-402E-8BD4-484F64A9DDD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A19E9525-593C-402E-8BD4-484F64A9DDD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A19E9525-593C-402E-8BD4-484F64A9DDD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A19E9525-593C-402E-8BD4-484F64A9DDD5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
