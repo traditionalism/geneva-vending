@@ -58,7 +58,7 @@ namespace geneva_vending.Server
                 _resetTimes.TryRemove(netId, out resetTime);
             }
 
-            await Delay(180000);
+            await Delay(20000);
         }
     }
 }
