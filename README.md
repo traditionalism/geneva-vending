@@ -13,7 +13,7 @@ Afterwards, you can use `ensure geneva-vending` in your server.cfg or server con
 
 ## Features
 * Automatic resetting of vending-machines, after three minutes of the vending machine running out of soda cans, it will reset back to it's starting stock.
-* Uses modern practices. Statebags, not extremely horrible code.
+* Uses modern practices. Statebags, and not extremely horrible code.
 * Fairly optimized unless you're standing right next to the vending-machine.
 * It's a pretty 1:1 replication of actual vending-machines from vanilla GTA5!
 ### Planned
