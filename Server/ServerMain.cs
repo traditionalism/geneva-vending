@@ -17,7 +17,7 @@ namespace geneva_vending.Server
             if (vendingMachine != null)
             {
                 Debug.WriteLine("Initializing statebag(s) for ^3NetID: {0}^0.", netId);
-                vendingMachine.State.Set("sodaLeft", 3, true);
+                vendingMachine.State.Set("sodaLeft", 10, true);
                 vendingMachine.State.Set("beingUsed", false, true);
                 vendingMachine.State.Set("markedForReset", false, true);
             }
@@ -50,7 +50,7 @@ namespace geneva_vending.Server
                 if (vendingMachine != null)
                 {
                     Debug.WriteLine("Resetting vending machine, ^3NetID: {0}^0", netId);
-                    vendingMachine.State.Set("sodaLeft", 3, true);
+                    vendingMachine.State.Set("sodaLeft", 10, true);
                     vendingMachine.State.Set("beingUsed", false, true);
                     vendingMachine.State.Set("markedForReset", false, true);
                 }
