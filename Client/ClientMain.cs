@@ -10,7 +10,7 @@ namespace geneva_vending.Client
 {
     public class ClientMain : BaseScript
     {
-        private bool _unlimitedSoda;
+        private readonly bool _unlimitedSoda;
         private readonly Dictionary<int, int> _vendingMachineModels = new()
         {
             { GetHashKey("prop_vend_soda_01"), GetHashKey("prop_ecola_can") },
@@ -122,9 +122,9 @@ namespace geneva_vending.Client
 
             while (GetEntityAnimCurrentTime(plyPed.Handle, "MINI@SPRUNK", "PLYR_BUY_DRINK_PT1") < 0.31f) await Delay(0);
 
-            Prop _canProp = await World.CreatePropNoOffset(canModel, offset, new Vector3(0f, 0f, 0f), true);
-            _canProp.IsInvincible = true;
-            _canProp.AttachTo(plyPed.Bones[Bone.PH_R_Hand], new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f));
+            Prop canProp = await World.CreatePropNoOffset(canModel, offset, new Vector3(0f, 0f, 0f), true);
+            canProp.IsInvincible = true;
+            canProp.AttachTo(plyPed.Bones[Bone.PH_R_Hand], new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f));
 
             while (GetEntityAnimCurrentTime(plyPed.Handle, "MINI@SPRUNK", "PLYR_BUY_DRINK_PT1") < 0.98f) await Delay(0);
 
@@ -138,9 +138,9 @@ namespace geneva_vending.Client
 
             while (GetEntityAnimCurrentTime(plyPed.Handle, "MINI@SPRUNK", "PLYR_BUY_DRINK_PT3") < 0.306f) await Delay(0);
 
-            _canProp.Detach();
-            _canProp.ApplyForce(new Vector3(6f, 10f, 2f), new Vector3(0f, 0f, 0f), ForceType.MaxForceRot);
-            _canProp.MarkAsNoLongerNeeded();
+            canProp.Detach();
+            canProp.ApplyForce(new Vector3(6f, 10f, 2f), new Vector3(0f, 0f, 0f), ForceType.MaxForceRot);
+            canProp.MarkAsNoLongerNeeded();
 
             RemoveAnimDict("MINI@SPRUNK");
             ReleaseAmbientAudioBank();
@@ -196,13 +196,13 @@ namespace geneva_vending.Client
 
             if (!NetworkGetEntityIsNetworked(prop.Handle)) NetworkRegisterEntityAsNetworked(prop.Handle);
 
-            if (prop?.State.Get("beingUsed") == null || !_unlimitedSoda && prop?.State.Get("sodaLeft") == null)
+            if (prop.State.Get("beingUsed") == null || !_unlimitedSoda && prop?.State.Get("sodaLeft") == null)
             {
                 TriggerServerEvent("geneva-vending:initVendingMachine", prop.NetworkId);
                 await Delay(500);
             }
 
-            if (prop?.State.Get("beingUsed") != null && prop?.State.Get("beingUsed"))
+            if (prop.State.Get("beingUsed") != null && prop.State.Get("beingUsed"))
             {
                 await Delay(3000);
                 return;
@@ -216,7 +216,7 @@ namespace geneva_vending.Client
                 return;
             }
 
-            if (!_unlimitedSoda && prop?.State.Get("sodaLeft") > 0 && !IsPauseMenuActive() && dist < 1.5f ||  _unlimitedSoda && !IsPauseMenuActive() && dist < 1.5f)
+            if (!_unlimitedSoda && prop.State.Get("sodaLeft") > 0 && !IsPauseMenuActive() && dist < 1.5f ||  _unlimitedSoda && !IsPauseMenuActive() && dist < 1.5f)
             {
                 Screen.DisplayHelpTextThisFrame("Press ~INPUT_CONTEXT~ to buy a soda for $1.");
 
@@ -225,11 +225,11 @@ namespace geneva_vending.Client
                     await BuySoda(prop);
                 }
             }
-            else if (!_unlimitedSoda && prop?.State.Get("sodaLeft") == 0 && dist < 1.5f || _unlimitedSoda && dist < 1.5f)
+            else if (!_unlimitedSoda && prop.State.Get("sodaLeft") == 0 && dist < 1.5f || _unlimitedSoda && dist < 1.5f)
             {
-                if (!_unlimitedSoda && !prop?.State.Get("markedForReset"))
+                if (!_unlimitedSoda && !prop.State.Get("markedForReset"))
                 {
-                    TriggerServerEvent("geneva-vending:markVendingMachineForReset", prop?.NetworkId);
+                    TriggerServerEvent("geneva-vending:markVendingMachineForReset", prop.NetworkId);
                     await Delay(500);
                 }
 
