@@ -1,7 +1,10 @@
 fx_version 'cerulean'
 game 'gta5'
 
-file 'Client/bin/Release/**/publish/*.dll'
+files {
+    'Client/bin/Release/**/publish/*.dll',
+    'config.ini'
+}
 
 client_script 'Client/bin/Release/**/publish/*.net.dll'
 server_script 'Server/bin/Release/**/publish/*.net.dll'

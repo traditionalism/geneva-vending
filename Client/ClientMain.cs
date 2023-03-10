@@ -4,12 +4,13 @@ using System.Threading.Tasks;
 using CitizenFX.Core;
 using CitizenFX.Core.UI;
 using static CitizenFX.Core.Native.API;
+using SharpConfig;
 
 namespace geneva_vending.Client
 {
     public class ClientMain : BaseScript
     {
-        private bool _usingVendingMachine;
+        private bool _unlimitedSoda;
         private readonly Dictionary<int, int> _vendingMachineModels = new()
         {
             { GetHashKey("prop_vend_soda_01"), GetHashKey("prop_ecola_can") },
@@ -24,6 +25,24 @@ namespace geneva_vending.Client
             Game.PlayerPed.IsOnFoot &&
             !Game.PlayerPed.IsRagdoll &&
             !Game.PlayerPed.IsSwimming;
+
+        public ClientMain()
+        {
+            try
+            {
+                string data = LoadResourceFile(GetCurrentResourceName(), "config.ini");
+                Configuration loaded = Configuration.LoadFromString(data);
+
+                if (!System.Boolean.TryParse(loaded["geneva-vending"]["UnlimitedSoda"].StringValue, out _unlimitedSoda))
+                {
+                    _unlimitedSoda = false;
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.WriteLine($"Error loading 'config.ini': {ex.Message}");
+            }
+        }
 
         private async Task LoadAnimDict(string dict)
         {
@@ -54,8 +73,20 @@ namespace geneva_vending.Client
         private async Task BuySoda(Prop vendingMachine)
         {
             ClearHelp(true);
-            vendingMachine.State.Set("beingUsed", true, true);
             Ped plyPed = Game.PlayerPed;
+            plyPed.Task.ClearAll();
+
+            bool owner = NetworkGetEntityOwner(vendingMachine.Handle) == Game.Player.Handle;
+
+            if (!owner)
+            {
+                TriggerServerEvent("geneva-vending:setAsUsed", vendingMachine.NetworkId);
+            }
+            else
+            {
+                vendingMachine.State.Set("beingUsed", true, true);
+            }
+
             Vector3 offset = vendingMachine.GetOffsetPosition(new Vector3(0f, -0.97f, 0.05f));
 
             plyPed.SetConfigFlag(48, true);
@@ -72,7 +103,6 @@ namespace geneva_vending.Client
             }
             else
             {
-                _usingVendingMachine = false;
                 plyPed.SetConfigFlag(48, false);
                 plyPed.IsInvincible = false;
                 plyPed.CanBeTargetted = true;
@@ -116,17 +146,31 @@ namespace geneva_vending.Client
             ReleaseAmbientAudioBank();
             SetModelAsNoLongerNeeded((uint)canModel);
             plyPed.SetConfigFlag(48, false);
+            plyPed.Task.ClearAll();
             plyPed.IsInvincible = false;
             plyPed.CanBeTargetted = true;
             plyPed.CanRagdoll = true;
-            vendingMachine.State.Set("beingUsed", false, true);
-            int sodaLeft = vendingMachine.State.Get("sodaLeft");
-            vendingMachine.State.Set("sodaLeft", sodaLeft -= 1, true);
-        }
-
-        private bool DoStateBagsExist(Prop vendingMachine)
-        {
-            return vendingMachine.State.Get("sodaLeft") != null && vendingMachine.State.Get("beingUsed") != null;
+            if (!owner)
+            {
+                if (!_unlimitedSoda)
+                {
+                    int sodaLeft = vendingMachine.State.Get("sodaLeft");
+                    TriggerServerEvent("geneva-vending:setAsUnused", vendingMachine.NetworkId, sodaLeft -= 1);
+                }
+                else
+                {
+                    TriggerServerEvent("geneva-vending:setAsUnused", vendingMachine.NetworkId);
+                }
+            }
+            else
+            {
+                vendingMachine.State.Set("beingUsed", false, true);
+                if (!_unlimitedSoda)
+                {
+                    int sodaLeft = vendingMachine.State.Get("sodaLeft");
+                    vendingMachine.State.Set("sodaLeft", sodaLeft -= 1, true);
+                }
+            }
         }
 
         [Tick]
@@ -134,7 +178,7 @@ namespace geneva_vending.Client
         {
             if (!CanUseVendingMachine)
             {
-                await Delay(3500);
+                await Delay(2500);
                 return;
             }
 
@@ -146,16 +190,16 @@ namespace geneva_vending.Client
 
             if (prop == null)
             {
-                await Delay(3500);
+                await Delay(4000);
                 return;
             }
 
             if (!NetworkGetEntityIsNetworked(prop.Handle)) NetworkRegisterEntityAsNetworked(prop.Handle);
 
-            if (!DoStateBagsExist(prop))
+            if (prop?.State.Get("beingUsed") == null || !_unlimitedSoda && prop?.State.Get("sodaLeft") == null)
             {
                 TriggerServerEvent("geneva-vending:initVendingMachine", prop.NetworkId);
-                await Delay(1000);
+                await Delay(500);
             }
 
             if (prop?.State.Get("beingUsed") != null && prop?.State.Get("beingUsed"))
@@ -166,19 +210,13 @@ namespace geneva_vending.Client
 
             float dist = Vector3.Distance(plyPos, prop.Position);
 
-            if (dist > 10.0f)
-            {
-                await Delay(2000);
-                return;
-            }
-
             if (dist > 5.0f)
             {
-                await Delay(1000);
+                await Delay(1500);
                 return;
             }
 
-            if (prop?.State.Get("sodaLeft") > 0 && !IsPauseMenuActive() && dist < 1.5f)
+            if (!_unlimitedSoda && prop?.State.Get("sodaLeft") > 0 && !IsPauseMenuActive() && dist < 1.5f ||  _unlimitedSoda && !IsPauseMenuActive() && dist < 1.5f)
             {
                 Screen.DisplayHelpTextThisFrame("Press ~INPUT_CONTEXT~ to buy a soda for $1.");
 
@@ -187,12 +225,12 @@ namespace geneva_vending.Client
                     await BuySoda(prop);
                 }
             }
-            else if (prop?.State.Get("sodaLeft") == 0 && dist < 1.5f)
+            else if (!_unlimitedSoda && prop?.State.Get("sodaLeft") == 0 && dist < 1.5f || _unlimitedSoda && dist < 1.5f)
             {
-                if (!prop?.State.Get("markedForReset"))
+                if (!_unlimitedSoda && !prop?.State.Get("markedForReset"))
                 {
                     TriggerServerEvent("geneva-vending:markVendingMachineForReset", prop?.NetworkId);
-                    await Delay(350);
+                    await Delay(500);
                 }
 
                 Screen.DisplayHelpTextThisFrame("Vending machine has run out of sodas.");
