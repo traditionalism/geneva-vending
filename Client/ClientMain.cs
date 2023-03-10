@@ -185,7 +185,7 @@ namespace geneva_vending.Client
             Vector3 plyPos = Game.PlayerPed.Position;
             Prop prop = World.GetAllProps()
                 .Where(p => _vendingMachineModels.ContainsKey(p.Model))
-                .OrderBy(p => Vector3.Distance(p.Position, plyPos))
+                .OrderBy(p => Vector3.DistanceSquared(p.Position, plyPos))
                 .FirstOrDefault();
 
             if (prop == null)
@@ -208,7 +208,7 @@ namespace geneva_vending.Client
                 return;
             }
 
-            float dist = Vector3.Distance(plyPos, prop.Position);
+            float dist = Vector3.DistanceSquared(plyPos, prop.Position);
 
             if (dist > 5.0f)
             {
