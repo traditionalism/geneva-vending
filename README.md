@@ -20,5 +20,8 @@ Afterwards, you can use `ensure geneva-vending` in your server.cfg or server con
 * Configuration.
 * Cleanup code.
 
+## Preview
+[Streamable](https://streamable.com/0v56a7)
+
 ## Configuration
 Nothing! In the future, I may decided to add a small configuration file.
