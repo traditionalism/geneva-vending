@@ -196,13 +196,13 @@ namespace geneva_vending.Client
 
             if (!NetworkGetEntityIsNetworked(prop.Handle)) NetworkRegisterEntityAsNetworked(prop.Handle);
 
-            if (prop.State.Get("beingUsed") == null || !_unlimitedSoda && prop?.State.Get("sodaLeft") == null)
+            if (prop.State.Get("beingUsed") == null)
             {
                 TriggerServerEvent("geneva-vending:initVendingMachine", prop.NetworkId);
-                await Delay(500);
+                await Delay(1000);
             }
 
-            if (prop.State.Get("beingUsed") != null && prop.State.Get("beingUsed"))
+            if (prop.State.Get("beingUsed") == null || prop.State.Get("beingUsed"))
             {
                 await Delay(3000);
                 return;
@@ -216,18 +216,21 @@ namespace geneva_vending.Client
                 return;
             }
 
-            if (!_unlimitedSoda && prop.State.Get("sodaLeft") > 0 && !IsPauseMenuActive() && dist < 1.5f ||  _unlimitedSoda && !IsPauseMenuActive() && dist < 1.5f)
+            if ((!_unlimitedSoda && prop.State.Get("sodaLeft") > 0) || _unlimitedSoda)
             {
-                Screen.DisplayHelpTextThisFrame("Press ~INPUT_CONTEXT~ to buy a soda for $1.");
-
-                if (Game.IsControlJustReleased(0, Control.Context))
+                if (!IsPauseMenuActive() && dist < 1.5f)
                 {
-                    await BuySoda(prop);
+                    Screen.DisplayHelpTextThisFrame("Press ~INPUT_CONTEXT~ to buy a soda for $1.");
+
+                    if (Game.IsControlJustReleased(0, Control.Context))
+                    {
+                        await BuySoda(prop);
+                    }
                 }
             }
-            else if (!_unlimitedSoda && prop.State.Get("sodaLeft") == 0 && dist < 1.5f || _unlimitedSoda && dist < 1.5f)
+            else
             {
-                if (!_unlimitedSoda && !prop.State.Get("markedForReset"))
+                if (!_unlimitedSoda && prop.State.Get("markedForReset") == null || !prop.State.Get("markedForReset"))
                 {
                     TriggerServerEvent("geneva-vending:markVendingMachineForReset", prop.NetworkId);
                     await Delay(500);
