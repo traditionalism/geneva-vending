@@ -106,7 +106,7 @@ namespace geneva_vending.Server
 
             foreach (int netId in netIds)
             {
-                if (!_resetTimes.TryGetValue(netId, out var resetTime)) continue;
+                if (!_resetTimes.TryGetValue(netId, out DateTime resetTime)) continue;
                 if (UtcNow < resetTime) continue;
 
                 Entity vendingMachine = Entity.FromHandle(NetworkGetEntityFromNetworkId(netId));
