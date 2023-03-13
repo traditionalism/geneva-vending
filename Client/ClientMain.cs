@@ -33,7 +33,7 @@ namespace geneva_vending.Client
                 string data = LoadResourceFile(GetCurrentResourceName(), "config.ini");
                 Configuration loaded = Configuration.LoadFromString(data);
 
-                if (!System.Boolean.TryParse(loaded["geneva-vending"]["UnlimitedSoda"].StringValue, out _unlimitedSoda))
+                if (!bool.TryParse(loaded["geneva-vending"]["UnlimitedSoda"].StringValue, out _unlimitedSoda))
                 {
                     _unlimitedSoda = false;
                 }
@@ -44,7 +44,7 @@ namespace geneva_vending.Client
             }
         }
 
-        private async Task LoadAnimDict(string dict)
+        private static async Task LoadAnimDict(string dict)
         {
             RequestAnimDict(dict);
             while (!HasAnimDictLoaded(dict))
@@ -53,7 +53,7 @@ namespace geneva_vending.Client
             }
         }
 
-        private async Task LoadModel(uint model)
+        private static async Task LoadModel(uint model)
         {
             RequestModel(model);
             while (!HasModelLoaded(model))
@@ -62,7 +62,7 @@ namespace geneva_vending.Client
             }
         }
 
-        private async Task LoadAmbientAudioBank(string bank)
+        private static async Task LoadAmbientAudioBank(string bank)
         {
             while (!RequestAmbientAudioBank(bank, false))
             {
@@ -70,7 +70,7 @@ namespace geneva_vending.Client
             }
         }
 
-        private async Task BuySoda(Prop vendingMachine)
+        private async Task BuySoda(Entity vendingMachine)
         {
             ClearHelp(true);
             Ped plyPed = Game.PlayerPed;
@@ -150,12 +150,13 @@ namespace geneva_vending.Client
             plyPed.IsInvincible = false;
             plyPed.CanBeTargetted = true;
             plyPed.CanRagdoll = true;
+            
             if (!owner)
             {
                 if (!_unlimitedSoda)
                 {
                     int sodaLeft = vendingMachine.State.Get("sodaLeft");
-                    TriggerServerEvent("geneva-vending:setAsUnused", vendingMachine.NetworkId, sodaLeft -= 1);
+                    TriggerServerEvent("geneva-vending:setAsUnused", vendingMachine.NetworkId, sodaLeft - 1);
                 }
                 else
                 {
@@ -168,7 +169,7 @@ namespace geneva_vending.Client
                 if (!_unlimitedSoda)
                 {
                     int sodaLeft = vendingMachine.State.Get("sodaLeft");
-                    vendingMachine.State.Set("sodaLeft", sodaLeft -= 1, true);
+                    vendingMachine.State.Set("sodaLeft", sodaLeft - 1, true);
                 }
             }
         }
@@ -188,7 +189,7 @@ namespace geneva_vending.Client
                 .OrderBy(p => Vector3.DistanceSquared(p.Position, plyPos))
                 .FirstOrDefault();
 
-            if (prop == null)
+            if (prop is null)
             {
                 await Delay(4000);
                 return;
@@ -196,13 +197,13 @@ namespace geneva_vending.Client
 
             if (!NetworkGetEntityIsNetworked(prop.Handle)) NetworkRegisterEntityAsNetworked(prop.Handle);
 
-            if (prop.State.Get("beingUsed") == null)
+            if (prop.State.Get("beingUsed") is null)
             {
                 TriggerServerEvent("geneva-vending:initVendingMachine", prop.NetworkId);
                 await Delay(1000);
             }
 
-            if (prop.State.Get("beingUsed") == null || prop.State.Get("beingUsed"))
+            if (prop.State.Get("beingUsed") is null || prop.State.Get("beingUsed"))
             {
                 await Delay(3000);
                 return;
@@ -230,7 +231,7 @@ namespace geneva_vending.Client
             }
             else
             {
-                if (!_unlimitedSoda && prop.State.Get("markedForReset") == null || !prop.State.Get("markedForReset"))
+                if (!_unlimitedSoda && prop.State.Get("markedForReset") is null || !prop.State.Get("markedForReset"))
                 {
                     TriggerServerEvent("geneva-vending:markVendingMachineForReset", prop.NetworkId);
                     await Delay(500);
