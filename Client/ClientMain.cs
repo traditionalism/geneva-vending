@@ -189,12 +189,12 @@ namespace geneva_vending.Client
                 .OrderBy(p => Vector3.DistanceSquared(p.Position, plyPos))
                 .FirstOrDefault();
 
-            if (prop is null)
+            if (prop is null || HasObjectBeenBroken(prop.Handle))
             {
                 await Delay(4000);
                 return;
             }
-
+            
             if (!NetworkGetEntityIsNetworked(prop.Handle)) NetworkRegisterEntityAsNetworked(prop.Handle);
 
             if (prop.State.Get("beingUsed") is null)
