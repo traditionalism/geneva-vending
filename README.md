@@ -17,11 +17,7 @@ Afterwards, you can use `ensure geneva-vending` in your server.cfg or server con
 * Fairly optimized unless you're standing right next to the vending-machine.
 * It's a pretty 1:1 replication of actual vending-machines from vanilla GTA5!
 ### Planned
-* Configuration.
 * Cleanup code.
 
 ## Preview
 [Streamable](https://streamable.com/0v56a7)
-
-## Configuration
-Nothing! In the future, I may decided to add a small configuration file.
